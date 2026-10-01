@@ -1,0 +1,328 @@
+/* Dedicated pricing page. The plan cards themselves reuse .lp-plan and friends
+   from landing.css; this file covers the page chrome that has no landing
+   equivalent — the billing toggle, the tier grid, the FAQ and the closer. */
+
+.pricing-main {
+  padding: calc(74px + clamp(48px, 8vw, 96px)) clamp(20px, 5vw, 64px) 0;
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+.pricing-head {
+  max-width: 660px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.pricing-title {
+  font: 800 clamp(30px, 4.4vw, 50px) / 1.1 Manrope, sans-serif;
+  letter-spacing: -1.8px;
+  margin: 12px 0 18px;
+  color: var(--lp-text);
+}
+
+.pricing-lede {
+  font-size: clamp(14px, 1.3vw, 16px);
+  line-height: 1.65;
+  color: var(--lp-muted);
+  margin: 0;
+}
+
+/* Toggle ---------------------------------------------------------------- */
+
+.pricing-toggle {
+  margin: 36px 0 40px;
+  display: grid;
+  justify-items: center;
+  gap: 11px;
+}
+
+.pricing-toggle-group {
+  display: inline-flex;
+  padding: 4px;
+  gap: 3px;
+  border-radius: 999px;
+  border: 1px solid var(--lp-border);
+  background: var(--lp-surface);
+}
+
+.pricing-toggle-group button {
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--lp-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.pricing-toggle-group button:hover { color: var(--lp-text); }
+
+.pricing-toggle-group button.is-active {
+  background: linear-gradient(120deg, var(--lp-blue-bright), var(--lp-indigo));
+  color: #fff;
+}
+
+/* Saving shown only on the annual option, so the discount is never a claim
+   the reader has to go looking for. */
+.pricing-toggle-group button span {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.18);
+  color: var(--lp-green);
+}
+
+.pricing-toggle-group button.is-active span {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.pricing-toggle-note {
+  margin: 0;
+  font-size: 12px;
+  color: var(--lp-faint);
+}
+
+/* Plan cards ------------------------------------------------------------ */
+
+.pricing-main .lp-plans { margin-bottom: clamp(56px, 8vw, 88px); }
+
+/* Tier comparison ------------------------------------------------------- */
+
+.pricing-subtitle {
+  font: 700 clamp(20px, 2.3vw, 27px) Manrope, sans-serif;
+  letter-spacing: -0.6px;
+  margin: 0 0 26px;
+  color: var(--lp-text);
+}
+
+.pricing-tiers { margin-bottom: clamp(56px, 8vw, 88px); }
+
+.pricing-tiers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 20px;
+}
+
+.pricing-tier {
+  padding: 24px 22px;
+  border-radius: 14px;
+  border: 1px solid var(--lp-border);
+  background: var(--lp-surface);
+}
+
+.pricing-tier b {
+  display: block;
+  font: 700 14px Manrope, sans-serif;
+  color: var(--lp-text);
+  margin-bottom: 9px;
+}
+
+.pricing-tier p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--lp-muted);
+}
+
+/* FAQ ------------------------------------------------------------------- */
+
+.pricing-faq { margin-bottom: clamp(56px, 8vw, 88px); }
+
+.pricing-faq dl {
+  margin: 0;
+  display: grid;
+  gap: 0;
+  border-top: 1px solid var(--lp-border);
+}
+
+.pricing-faq-item {
+  padding: 24px 0;
+  border-bottom: 1px solid var(--lp-border);
+  display: grid;
+  grid-template-columns: minmax(200px, 0.8fr) 1.2fr;
+  gap: 12px 40px;
+}
+
+.pricing-faq dt {
+  font: 700 15px Manrope, sans-serif;
+  color: var(--lp-text);
+}
+
+.pricing-faq dd {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--lp-muted);
+}
+
+/* Closer ---------------------------------------------------------------- */
+
+.pricing-closer {
+  padding: clamp(32px, 5vw, 52px);
+  border-radius: 18px;
+  border: 1px solid rgba(96, 165, 250, 0.34);
+  background: linear-gradient(160deg, rgba(37, 99, 235, 0.14), rgba(16, 26, 46, 0.6));
+  text-align: center;
+  margin-bottom: clamp(56px, 8vw, 88px);
+}
+
+.pricing-closer h2 {
+  font: 700 clamp(21px, 2.4vw, 28px) Manrope, sans-serif;
+  letter-spacing: -0.6px;
+  margin: 0 0 10px;
+  color: var(--lp-text);
+}
+
+.pricing-closer p {
+  margin: 0 0 26px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--lp-muted);
+}
+
+.pricing-closer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+@media (max-width: 760px) {
+  .pricing-faq-item {
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+}
+
+/* ---------------------------------------------------------------- plans --- */
+
+.lp-plans {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(276px, 1fr));
+  gap: 20px;
+  align-items: start;
+}
+
+.lp-plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 30px 26px;
+  border-radius: 16px;
+  border: 1px solid var(--lp-border);
+  background: var(--lp-surface);
+  transition: transform 0.22s ease, border-color 0.22s ease;
+}
+
+.lp-plan:hover {
+  transform: translateY(-3px);
+  border-color: rgba(96, 165, 250, 0.42);
+}
+
+/* The featured tier is lifted and lit rather than just recoloured, so it wins
+   the eye without needing a louder fill than the rest. */
+.lp-plan.is-featured {
+  border-color: rgba(96, 165, 250, 0.55);
+  background: linear-gradient(165deg, rgba(37, 99, 235, 0.16), rgba(16, 26, 46, 0.62));
+  box-shadow: 0 22px 54px rgba(6, 14, 32, 0.42);
+}
+
+.lp-plan-flag {
+  position: absolute;
+  top: -11px;
+  left: 26px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: linear-gradient(120deg, var(--lp-blue-bright), var(--lp-indigo));
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+.lp-plan-name {
+  margin: 0 0 14px;
+  font: 700 17px Manrope, sans-serif;
+  color: var(--lp-text);
+}
+
+.lp-plan-price {
+  margin: 0 0 12px;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.lp-plan-price b {
+  font: 800 36px Manrope, sans-serif;
+  letter-spacing: -1.4px;
+  line-height: 1;
+  color: var(--lp-text);
+}
+
+.lp-plan-price span {
+  font-size: 12.5px;
+  color: var(--lp-faint);
+}
+
+.lp-plan-summary {
+  margin: 0 0 20px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--lp-muted);
+}
+
+.lp-plan-features {
+  list-style: none;
+  margin: 0 0 24px;
+  padding: 0;
+  display: grid;
+  gap: 11px;
+  flex: 1;
+}
+
+.lp-plan-features li {
+  position: relative;
+  padding-left: 26px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--lp-muted);
+}
+
+.lp-plan-features li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: rgba(23, 165, 121, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(23, 165, 121, 0.5);
+}
+
+.lp-plan-features li::after {
+  content: '';
+  position: absolute;
+  left: 4.5px;
+  top: 8px;
+  width: 6px;
+  height: 3px;
+  border-left: 1.6px solid var(--lp-green);
+  border-bottom: 1.6px solid var(--lp-green);
+  transform: rotate(-45deg);
+}
+
+.lp-plan-cta {
+  width: 100%;
+  justify-content: center;
+}

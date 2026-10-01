@@ -1,0 +1,799 @@
+/* ==========================================================================
+   LogiCraft hero
+   Layer order: 3D canvas (or fallback) → poster frame → copy overlay.
+   Text is laid directly over the cinematic animation with high-contrast
+   typography, glowing gradients, and glassmorphic badges.
+   ========================================================================== */
+
+.landing-hero {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  min-height: 560px;
+  overflow: hidden;
+  background: #080d18;
+  color: #f8fafc;
+  font-family: 'DM Sans', sans-serif;
+  isolation: isolate;
+}
+
+/* --------------------------------------------------------------- canvas --- */
+
+.hero-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.hero-canvas canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* -------------------------------------------------------- poster frame --- */
+
+.hero-poster {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  transition: opacity 900ms cubic-bezier(0.16, 1, 0.3, 1);
+  background: #080d18;
+}
+
+.hero-poster svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.hero-poster-gone {
+  opacity: 0;
+}
+
+.hero-poster-badge {
+  position: absolute;
+  right: 28px;
+  bottom: 26px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 15px;
+  border-radius: 100px;
+  background: rgba(11, 18, 32, 0.72);
+  border: 1px solid rgba(96, 165, 250, 0.28);
+  backdrop-filter: blur(10px);
+  color: #b9cdea;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.hero-poster-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #60a5fa;
+  animation: hero-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes hero-pulse {
+  0%, 100% { opacity: 0.35; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+/* ------------------------------------------------------- copy overlay --- */
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  padding: 0 clamp(24px, 7vw, 110px);
+  pointer-events: none;
+  opacity: 0;
+  /* Short: the copy lines run their own staggered descent once the overlay
+     switches on, and a slow parent fade would just delay all of them. */
+  transition: opacity 0.28s ease-out;
+  background: transparent;
+}
+
+.hero-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* The static illustration needs no scrim */
+.hero-overlay-static {
+  background: transparent;
+}
+
+.hero-copy {
+  max-width: 540px;
+}
+
+/*
+ * Each block of the hero copy drops into place from just above its resting
+ * position, one after another, on a long slow ease — a descending read rather
+ * than a punch. No `filter` in the keyframes: the accent line paints its
+ * gradient with one, and an animated filter would overwrite it for good.
+ */
+@keyframes hero-copy-drop {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -34px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.hero-overlay.visible .hero-reveal {
+  animation: hero-copy-drop 1.25s cubic-bezier(0.24, 0.62, 0.22, 1) both;
+}
+
+.hero-overlay.visible .eyebrow { animation-delay: 0ms; }
+.hero-overlay.visible .hero-copy h1 .hero-line:nth-child(1) { animation-delay: 130ms; }
+.hero-overlay.visible .hero-copy h1 .hero-line:nth-child(2) { animation-delay: 300ms; }
+.hero-overlay.visible .hero-copy p { animation-delay: 470ms; }
+.hero-overlay.visible .hero-actions { animation-delay: 640ms; }
+
+.hero-copy h1 .hero-line {
+  display: block;
+}
+
+/* Scoped to the hero on purpose. This is a pill tag, but the workspace pages
+ * reuse the class name for a small uppercase label, and unscoped it leaked the
+ * translucent blue fill, padding, border and backdrop-filter onto all of them —
+ * while the later workspace rule supplied the light grey text, leaving every
+ * page eyebrow at 1.16:1 (light grey on a mid-blue pill). */
+.hero-overlay .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(30, 58, 138, 0.45);
+  color: #93c5fd;
+  padding: 6px 14px;
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  border: 1px solid rgba(147, 197, 253, 0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  background: #60a5fa;
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(96, 165, 250, 0.8);
+  animation: hero-pulse 2s ease-in-out infinite;
+}
+
+.hero-copy h1 {
+  font-size: clamp(34px, 4vw, 50px);
+  line-height: 1.12;
+  font-weight: 800;
+  letter-spacing: -1.4px;
+  margin: 0 0 20px;
+  color: #ffffff;
+  text-wrap: balance;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.6);
+}
+
+.hero-copy h1 .hero-line-accent {
+  color: #60a5fa;
+  background: linear-gradient(100deg, #60a5fa 10%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 14px rgba(96, 165, 250, 0.35));
+}
+
+.hero-copy p {
+  font-size: 17px;
+  line-height: 1.62;
+  color: #cbd5e1;
+  margin: 0 0 34px;
+  max-width: 480px;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+}
+
+.hero-actions {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 14px 26px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease, color 0.18s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: #fff;
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+}
+.btn-primary:hover {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(37, 99, 235, 0.5);
+}
+
+.btn-secondary {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+.btn-secondary:hover {
+  background: #f1f5f9;
+  border-color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* -------------------------------------------------- floating alert toast --- */
+
+.hero-toast-anchor {
+  position: absolute;
+  top: clamp(24px, 4vw, 42px);
+  right: clamp(20px, 4vw, 52px);
+  z-index: 25;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-24px) scale(0.9);
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hero-toast-anchor.active {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+/* Shivering tremor that kicks off right after the crash */
+.hero-toast-anchor.active .hero-toast-shiver {
+  animation: toast-crash-shiver 0.85s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes toast-crash-shiver {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  8% {
+    transform: translate(-6px, 3px) rotate(-3deg);
+  }
+  16% {
+    transform: translate(6px, -4px) rotate(2.5deg);
+  }
+  24% {
+    transform: translate(-5px, -2px) rotate(-2deg);
+  }
+  32% {
+    transform: translate(5px, 3px) rotate(2deg);
+  }
+  40% {
+    transform: translate(-4px, 1px) rotate(-1.5deg);
+  }
+  48% {
+    transform: translate(4px, -2px) rotate(1.2deg);
+  }
+  56% {
+    transform: translate(-3px, 2px) rotate(-0.8deg);
+  }
+  64% {
+    transform: translate(3px, -1px) rotate(0.8deg);
+  }
+  72% {
+    transform: translate(-2px, 1px) rotate(-0.4deg);
+  }
+  80% {
+    transform: translate(1px, -0.5px) rotate(0.4deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+}
+
+/* Continuous slow-motion zoom-in & zoom-out breathing effect with subtle periodic tremor */
+.hero-toast-anchor.active .hero-alert-preview {
+  animation: toast-slow-zoom 3.6s ease-in-out infinite;
+}
+
+@keyframes toast-slow-zoom {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.75), 0 0 16px rgba(229, 72, 77, 0.25);
+  }
+  46% {
+    transform: scale(1.07);
+    box-shadow: 0 22px 46px -6px rgba(0, 0, 0, 0.85), 0 0 34px rgba(229, 72, 77, 0.6);
+    border-color: rgba(229, 72, 77, 0.7);
+  }
+  49% {
+    transform: scale(1.085) translate(-1.5px, 0.5px) rotate(-0.6deg);
+    box-shadow: 0 24px 48px -6px rgba(0, 0, 0, 0.88), 0 0 40px rgba(229, 72, 77, 0.75);
+  }
+  52% {
+    transform: scale(1.085) translate(1.5px, -0.5px) rotate(0.6deg);
+  }
+  55% {
+    transform: scale(1.07) translate(0, 0) rotate(0deg);
+    box-shadow: 0 22px 46px -6px rgba(0, 0, 0, 0.85), 0 0 34px rgba(229, 72, 77, 0.6);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.75), 0 0 16px rgba(229, 72, 77, 0.25);
+  }
+}
+
+.hero-alert-preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px 12px 14px;
+  border-radius: 14px;
+  background: rgba(11, 18, 32, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(229, 72, 77, 0.45);
+  box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.75), 0 0 20px rgba(229, 72, 77, 0.25);
+  transform-origin: center center;
+  user-select: none;
+}
+
+.hero-alert-icon {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  border-radius: 50%;
+  background: #e5484d;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 0 12px rgba(229, 72, 77, 0.65);
+}
+
+.hero-alert-body {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  min-width: 0;
+}
+.hero-alert-body b {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #f8fafc;
+  font-family: 'Manrope', sans-serif;
+  letter-spacing: -0.2px;
+}
+.hero-alert-body small {
+  font-size: 11.5px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.hero-alert-notified {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.18);
+  border: 1px solid rgba(52, 211, 153, 0.28);
+  border-radius: 100px;
+  padding: 5px 12px;
+  white-space: nowrap;
+  margin-left: 4px;
+}
+
+.hero-scroll-cue {
+  position: absolute;
+  left: 50%;
+  bottom: 26px;
+  width: 22px;
+  height: 34px;
+  margin-left: -11px;
+  border: 1.5px solid rgba(226, 232, 240, 0.4);
+  border-radius: 12px;
+  z-index: 2;
+  opacity: 1;
+  transition: opacity 0.6s ease;
+}
+.hero-scroll-cue::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 7px;
+  width: 3px;
+  height: 7px;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background: rgba(226, 232, 240, 0.7);
+  animation: hero-cue 1.9s ease-in-out infinite;
+}
+.hero-scroll-cue.hidden {
+  opacity: 0;
+}
+
+@keyframes hero-cue {
+  0% { transform: translateY(0); opacity: 0; }
+  35% { opacity: 1; }
+  75% { transform: translateY(11px); opacity: 0; }
+  100% { transform: translateY(11px); opacity: 0; }
+}
+
+/* ==================================================== low-power fallback === */
+
+.hero-fallback-svg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: #080d18;
+}
+
+.hero-fallback-svg svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* =========================================== reduced-motion static split === */
+
+.hero-fallback-static {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 clamp(24px, 5vw, 90px);
+  background:
+    radial-gradient(120% 90% at 78% 40%, rgba(59, 130, 246, 0.14), transparent 62%),
+    linear-gradient(160deg, #0b1425 0%, #0a1220 60%, #0d1526 100%);
+}
+
+.fb-split {
+  display: flex;
+  align-items: center;
+  gap: clamp(20px, 3vw, 46px);
+  width: min(720px, 52vw);
+}
+
+.fb-side {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.fb-side-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #7d8999;
+  margin-bottom: 3px;
+}
+
+.fb-side-after .fb-side-label {
+  color: #60a5fa;
+}
+
+.fb-card {
+  display: grid;
+  grid-template-columns: 14px 1fr;
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: 9px;
+  row-gap: 1px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  background: rgba(26, 42, 68, 0.5);
+  border: 1px solid #334155;
+}
+
+.fb-card-dead {
+  border-style: dashed;
+}
+
+.fb-card b {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #b9cdea;
+  font-family: 'Manrope', sans-serif;
+}
+
+.fb-card small {
+  grid-column: 2;
+  font-size: 10.5px;
+  color: #64748b;
+}
+
+.fb-dot {
+  grid-row: 1 / span 2;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.fb-dot-dead {
+  background: #f2a93b;
+}
+
+.fb-blindspot {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 5px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  background: rgba(229, 72, 77, 0.1);
+  border: 1px dashed rgba(229, 72, 77, 0.5);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #f0a3a5;
+}
+.fb-blindspot i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #e5484d;
+  flex: 0 0 9px;
+}
+
+.fb-bridge {
+  flex: 0 0 116px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  text-align: center;
+}
+.fb-bridge svg {
+  width: 100%;
+  height: 24px;
+}
+.fb-bridge span {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #60a5fa;
+  line-height: 1.3;
+}
+
+.fb-dash {
+  border-radius: 12px;
+  background: #0b1220;
+  border: 1px solid #2b3646;
+  overflow: hidden;
+  box-shadow: 0 24px 50px -20px rgba(0, 0, 0, 0.7);
+}
+
+.fb-dash-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  background: #111c30;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.fb-dash-head b {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #e6edf8;
+  font-family: 'Manrope', sans-serif;
+  margin-right: auto;
+}
+.fb-mark {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: #2869d8;
+  transform: rotate(-4deg);
+}
+
+.fb-resolved {
+  font-style: normal;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: #17a579;
+  background: rgba(23, 165, 121, 0.16);
+  padding: 3px 9px;
+  border-radius: 100px;
+}
+
+.fb-dash-body {
+  display: grid;
+  grid-template-columns: 1.45fr 1fr;
+  gap: 8px;
+  padding: 10px 12px 8px;
+}
+
+.fb-dash-map {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  padding: 4px;
+}
+.fb-dash-map svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.fb-dash-kpis {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.fb-dash-kpis span {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 0 9px;
+  border-radius: 7px;
+  background: rgba(59, 130, 246, 0.14);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #9fc4f8;
+  font-family: 'Manrope', sans-serif;
+}
+
+.fb-dash-actions {
+  display: flex;
+  gap: 6px;
+  padding: 0 12px 11px;
+}
+.fb-dash-actions span {
+  flex: 1;
+  text-align: center;
+  padding: 5px 4px;
+  border-radius: 6px;
+  background: rgba(124, 58, 237, 0.16);
+  font-size: 9.5px;
+  font-weight: 600;
+  color: #c4b5fd;
+}
+
+/* ============================================================ responsive === */
+
+@media (max-width: 1080px) {
+  .hero-overlay {
+    background: transparent;
+  }
+  .fb-split {
+    width: min(620px, 62vw);
+  }
+}
+
+@media (max-width: 820px) {
+  .hero-overlay {
+    align-items: flex-end;
+    padding-bottom: 8vh;
+    background: transparent;
+  }
+  .hero-copy h1 {
+    font-size: 32px;
+    letter-spacing: -0.8px;
+  }
+  .hero-copy p {
+    font-size: 15px;
+    margin-bottom: 26px;
+  }
+  .btn-primary,
+  .btn-secondary {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+  .hero-toast-anchor {
+    top: 18px;
+    right: 16px;
+    left: auto;
+    max-width: calc(100vw - 32px);
+  }
+  .hero-alert-preview {
+    padding: 10px 14px;
+    gap: 10px;
+  }
+  .hero-fallback-static {
+    justify-content: center;
+    align-items: flex-end;
+    padding-bottom: 4vh;
+  }
+  .fb-split {
+    width: 100%;
+    gap: 16px;
+  }
+  .fb-bridge {
+    flex: 0 0 54px;
+  }
+  .fb-bridge span {
+    display: none;
+  }
+  .fb-card small,
+  .fb-dash-actions span {
+    display: none;
+  }
+  .hero-scroll-cue {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .landing-hero {
+    min-height: 640px;
+  }
+  .hero-toast-anchor {
+    top: 14px;
+    right: 12px;
+    max-width: calc(100vw - 24px);
+  }
+  .hero-alert-preview {
+    padding: 8px 12px;
+    gap: 8px;
+  }
+  .hero-alert-body b {
+    font-size: 12px;
+  }
+  .hero-alert-body small {
+    font-size: 10px;
+  }
+  .hero-alert-notified {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+  .fb-split {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .fb-bridge {
+    flex: 0 0 22px;
+  }
+  .fb-bridge svg {
+    transform: rotate(90deg);
+    height: 18px;
+  }
+}
+
+/* ==================================================== reduced motion kill === */
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-poster,
+  .hero-overlay,
+  .hero-scroll-cue {
+    transition-duration: 0.01ms;
+  }
+  .hero-overlay.visible .hero-reveal {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .pulse-dot,
+  .hero-poster-dot,
+  .hero-scroll-cue::after,
+  .hero-toast-anchor.active .hero-toast-shiver,
+  .hero-toast-anchor.active .hero-alert-preview {
+    animation: none !important;
+  }
+}

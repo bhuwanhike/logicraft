@@ -1,0 +1,35 @@
+-- Initial Schema for Users and Roles
+
+CREATE TABLE users (
+    id BIGSERIAL PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE roles (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE user_roles (
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    role_id BIGINT NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+    PRIMARY KEY (user_id, role_id)
+);
+
+-- Seed initial domain roles
+INSERT INTO roles (name) VALUES
+    ('ROLE_SUPER_ADMIN'),
+    ('ROLE_ORG_ADMIN'),
+    ('ROLE_FLEET_MANAGER'),
+    ('ROLE_DISPATCHER'),
+    ('ROLE_WAREHOUSE_MANAGER'),
+    ('ROLE_WAREHOUSE_STAFF'),
+    ('ROLE_DRIVER'),
+    ('ROLE_CUSTOMER');

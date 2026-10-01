@@ -1,3 +1,17 @@
 node_modules/
 dist/
 .DS_Store
+.vite/
+
+# Local environment files. .env holds VITE_GOOGLE_MAPS_API_KEY and is
+# untracked-but-committable otherwise, so a `git add .` would publish the
+# Maps key. Only .env.example, which carries placeholder values, is committed.
+.env
+.env.local
+.env.*.local
+
+# Screenshot written by `npm run verify:map-live`.
+map-live*.png
+
+# Coverage report written by `npm run test:coverage`.
+coverage/

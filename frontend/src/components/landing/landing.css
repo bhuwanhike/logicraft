@@ -1,0 +1,631 @@
+/* ==========================================================================
+   LogiCraft landing page
+   Everything below the hero. The hero owns the full first viewport; this file
+   is the calm, scrollable document that follows it. Dark palette throughout so
+   the page does not change temperature at the fold.
+   ========================================================================== */
+
+.landing-page {
+  --lp-bg: #070d1a;
+  --lp-bg-alt: #0a1122;
+  --lp-surface: rgba(16, 26, 46, 0.62);
+  --lp-border: rgba(255, 255, 255, 0.08);
+  --lp-border-strong: rgba(96, 165, 250, 0.34);
+  --lp-text: #eaf1fb;
+  --lp-muted: rgba(186, 205, 235, 0.72);
+  --lp-faint: rgba(186, 205, 235, 0.48);
+  --lp-blue: #3b82f6;
+  --lp-blue-bright: #60a5fa;
+  --lp-indigo: #818cf8;
+  --lp-green: #10b981;
+  --lp-amber: #f59e0b;
+
+  position: relative;
+  min-height: 100vh;
+  background: var(--lp-bg);
+  color: var(--lp-text);
+  font-family: 'DM Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+.landing-page main {
+  display: block;
+}
+
+.landing-body {
+  position: relative;
+  z-index: 1;
+  background:
+    radial-gradient(90% 60% at 50% 0%, rgba(37, 99, 235, 0.12), transparent 70%),
+    linear-gradient(180deg, #080d18 0%, var(--lp-bg) 18%, var(--lp-bg) 100%);
+}
+
+/* Anchor targets sit under the fixed nav without being hidden by it. */
+.landing-body [id] {
+  scroll-margin-top: 84px;
+}
+
+/* ============================================================ top nav === */
+
+.landing-nav {
+  /* Fixed, not sticky: the hero is a full-bleed first viewport and must stay
+     exactly one screen tall. Overlaying is the only way to have a nav without
+     pushing the animation down. */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  height: 74px;
+  padding: 0 clamp(20px, 5vw, 64px);
+  border-bottom: 1px solid transparent;
+  background: transparent;
+  transition: background 0.3s ease, border-color 0.3s ease, backdrop-filter 0.3s ease;
+}
+
+.landing-nav.is-raised {
+  background: rgba(7, 13, 26, 0.86);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom-color: var(--lp-border);
+}
+
+/* Pages without a full-bleed hero to blend into have nothing to overlay, so
+   they get the raised treatment from the first paint instead of on scroll. */
+.landing-nav.is-solid,
+.landing-nav.is-compact {
+  background: rgba(7, 13, 26, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom-color: var(--lp-border);
+}
+
+/* Compact: brand left, auth buttons right, nothing between. Without the
+   section links there is no middle content, so the actions are pushed across
+   rather than sitting next to the logo. */
+.landing-nav.is-compact { justify-content: space-between; }
+
+.landing-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
+  flex: 0 0 auto;
+}
+
+.landing-brand b,
+.lp-footer-brand b {
+  font: 800 19px Manrope, sans-serif;
+  letter-spacing: -0.3px;
+  line-height: 1;
+  color: var(--lp-text);
+}
+
+.landing-brand small,
+.lp-footer-brand small {
+  display: block;
+  font: 600 8.5px 'DM Sans', sans-serif;
+  letter-spacing: 1.5px;
+  color: var(--lp-faint);
+  margin-top: 5px;
+}
+
+.landing-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  margin-left: 12px;
+}
+
+.landing-nav-links a {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--lp-muted);
+  text-decoration: none;
+  transition: color 0.18s ease;
+}
+.landing-nav-links a:hover {
+  color: var(--lp-text);
+}
+
+.landing-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.landing-nav-toggle {
+  display: none;
+  margin-left: auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--lp-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--lp-text);
+  place-items: center;
+}
+
+.landing-nav-sheet {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px clamp(20px, 5vw, 64px) 22px;
+  background: rgba(7, 13, 26, 0.97);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-bottom: 1px solid var(--lp-border);
+}
+
+.landing-nav-sheet a {
+  padding: 11px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--lp-muted);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.landing-nav-sheet .landing-btn {
+  margin-top: 14px;
+  justify-content: center;
+}
+
+/* The hero's alert toast is pinned to the top-right corner, which is exactly
+   where the nav now sits. Nudge it clear rather than restyling the hero. */
+.landing-page .hero-toast-anchor {
+  top: calc(74px + clamp(16px, 3vw, 30px));
+}
+
+/* ============================================================== buttons === */
+
+.landing-btn,
+.lp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 20px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.lp-btn-primary,
+.landing-btn-primary {
+  background: var(--lp-blue);
+  color: #fff;
+  box-shadow: 0 2px 16px rgba(59, 130, 246, 0.35);
+}
+.lp-btn-primary:hover,
+.landing-btn-primary:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 32px rgba(59, 130, 246, 0.5);
+}
+
+.lp-btn-ghost,
+.landing-btn-ghost {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--lp-text);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+.lp-btn-ghost:hover,
+.landing-btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.28);
+  transform: translateY(-2px);
+}
+
+.lp-btn-sm {
+  padding: 9px 16px;
+  font-size: 13px;
+}
+
+/* ======================================================== scroll reveal === */
+
+.reveal {
+  opacity: 0;
+  transform: translate3d(0, 26px, 0);
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reveal.is-revealed {
+  opacity: 1;
+  transform: none;
+}
+
+/* ============================================================= sections === */
+
+.lp-section {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: clamp(64px, 9vw, 116px) clamp(20px, 5vw, 64px);
+}
+
+.lp-section-alt {
+  position: relative;
+  max-width: none;
+  padding-inline: max(clamp(20px, 5vw, 64px), calc((100vw - 1180px) / 2));
+  background: linear-gradient(180deg, rgba(10, 17, 34, 0) 0%, rgba(10, 17, 34, 0.9) 12%, rgba(10, 17, 34, 0.9) 88%, transparent 100%);
+}
+
+.lp-head {
+  max-width: 720px;
+  margin: 0 0 clamp(36px, 5vw, 60px);
+}
+
+.lp-eyebrow {
+  display: block;
+  margin-bottom: 14px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--lp-blue-bright);
+}
+
+.lp-title {
+  margin: 0 0 18px;
+  font: 800 clamp(28px, 3.6vw, 46px) Manrope, sans-serif;
+  line-height: 1.14;
+  letter-spacing: -1.2px;
+  color: #fff;
+  text-wrap: balance;
+}
+
+.lp-lede {
+  margin: 0;
+  font-size: 16.5px;
+  line-height: 1.68;
+  color: var(--lp-muted);
+}
+
+/* ------------------------------------------------------------ workflow --- */
+
+.lp-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+}
+
+.lp-step {
+  padding: 26px 22px;
+  border-radius: 16px;
+  border: 1px solid var(--lp-border);
+  background: var(--lp-surface);
+  position: relative;
+}
+
+/* The thread that visually ties the four steps into one loop. */
+.lp-step::after {
+  content: '';
+  position: absolute;
+  top: 38px;
+  right: -14px;
+  width: 14px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--lp-blue), transparent);
+}
+.lp-step:last-child::after {
+  display: none;
+}
+
+.lp-step-index {
+  display: inline-block;
+  margin-bottom: 14px;
+  font: 800 12px Manrope, sans-serif;
+  letter-spacing: 0.1em;
+  color: var(--lp-blue-bright);
+}
+
+.lp-step-title {
+  margin: 0 0 10px;
+  font: 800 18px Manrope, sans-serif;
+  letter-spacing: -0.3px;
+  color: #fff;
+}
+
+.lp-step-body {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.62;
+  color: var(--lp-muted);
+}
+
+/* -------------------------------------------------------- capabilities --- */
+
+.lp-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(272px, 1fr));
+  gap: 20px;
+}
+
+.lp-card {
+  display: flex;
+  flex-direction: column;
+  padding: 28px 24px;
+  border-radius: 16px;
+  border: 1px solid var(--lp-border);
+  background: var(--lp-surface);
+  transition: transform 0.22s ease, border-color 0.22s ease, background 0.22s ease;
+}
+
+.lp-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(59, 130, 246, 0.36);
+  background: rgba(20, 32, 56, 0.8);
+}
+
+.lp-card-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 18px;
+  border-radius: 12px;
+  color: var(--lp-blue-bright);
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.22);
+}
+
+.lp-card-title {
+  margin: 0 0 10px;
+  font: 800 17.5px Manrope, sans-serif;
+  letter-spacing: -0.3px;
+  color: #fff;
+}
+
+.lp-card-body {
+  flex: 1 1 auto;
+  margin: 0 0 18px;
+  font-size: 14px;
+  line-height: 1.62;
+  color: var(--lp-muted);
+}
+
+.lp-card-domain {
+  align-self: flex-start;
+  padding: 4px 10px;
+  border-radius: 100px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--lp-faint);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--lp-border);
+}
+
+/* -------------------------------------------------------------- metrics --- */
+
+.lp-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 20px;
+}
+
+.lp-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 28px 24px;
+  border-radius: 16px;
+  border: 1px solid var(--lp-border);
+  background: linear-gradient(160deg, rgba(37, 99, 235, 0.1), rgba(16, 26, 46, 0.5));
+}
+
+.lp-metric-value {
+  font: 800 clamp(30px, 3.4vw, 42px) Manrope, sans-serif;
+  letter-spacing: -1.4px;
+  line-height: 1;
+  background: linear-gradient(120deg, var(--lp-blue-bright), var(--lp-indigo));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.lp-metric-label {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--lp-text);
+}
+
+.lp-metric-note {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--lp-faint);
+}
+
+/* ============================================================== footer === */
+
+.lp-footer {
+  position: relative;
+  z-index: 1;
+  border-top: 1px solid var(--lp-border);
+  background: #060b16;
+}
+
+.lp-footer-top {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(260px, 1.15fr) minmax(0, 2fr);
+  gap: clamp(32px, 5vw, 72px);
+  padding: clamp(44px, 6vw, 72px) clamp(20px, 5vw, 64px);
+}
+
+.lp-footer-brand {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 10px 12px;
+}
+
+.lp-footer-brand p,
+.lp-footer-brand .lp-btn {
+  grid-column: 1 / -1;
+}
+
+.lp-footer-brand p {
+  margin: 6px 0 6px;
+  max-width: 340px;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--lp-faint);
+}
+
+.lp-footer-brand .lp-btn {
+  justify-self: start;
+}
+
+.lp-footer-columns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px;
+}
+
+.lp-footer-column h3 {
+  margin: 0 0 14px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--lp-text);
+}
+
+.lp-footer-column ul,
+.lp-footer-legal {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lp-footer-column a,
+.lp-footer-legal a {
+  font-size: 13.5px;
+  color: var(--lp-faint);
+  text-decoration: none;
+  transition: color 0.18s ease;
+}
+.lp-footer-column a:hover,
+.lp-footer-legal a:hover {
+  color: var(--lp-blue-bright);
+}
+
+.lp-footer-bottom {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 22px clamp(20px, 5vw, 64px);
+  border-top: 1px solid var(--lp-border);
+  font-size: 12.5px;
+  color: var(--lp-faint);
+}
+
+.lp-footer-legal {
+  flex-direction: row;
+  gap: 20px;
+}
+
+/* =========================================================== responsive === */
+
+@media (max-width: 960px) {
+  .landing-nav-links {
+    display: none;
+  }
+  .landing-nav-toggle {
+    display: grid;
+  }
+  .landing-nav-actions {
+    display: none;
+  }
+
+  /* The breakpoint above hides the actions and opens a sheet instead, but the
+     compact nav has no sheet — its only actions are those buttons. So it keeps
+     them, just smaller. */
+  .landing-nav.is-compact .landing-nav-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .landing-nav.is-compact .landing-btn {
+    height: 34px;
+    padding: 0 13px;
+    font-size: 12.5px;
+  }
+  .lp-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .lp-step::after {
+    display: none;
+  }
+  .lp-footer-top {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .lp-steps {
+    grid-template-columns: 1fr;
+  }
+  .lp-footer-columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .lp-footer-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 520px) {
+  .landing-nav {
+    height: 64px;
+  }
+  .landing-page .hero-toast-anchor {
+    top: 78px;
+  }
+  .lp-footer-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===================================================== reduced motion === */
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .landing-nav,
+  .lp-card,
+  .lp-btn,
+  .landing-btn {
+    transition-duration: 0.01ms;
+  }
+}

@@ -1,0 +1,24 @@
+/* Shared logo mark. Lives with the component so all four call sites — landing
+   nav, landing footer, app shell sidebar, auth panel — stay in step. */
+
+.brand-logo {
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.brand-logo-mark {
+  display: block;
+  width: 54px;
+  height: 54px;
+  object-fit: cover;
+  /* The source is a square with a near-black background, so the rounded
+     corners are ours, not the artwork's. */
+  border-radius: 11px;
+}
+
+/* On a light surface the dark tile needs an edge to read as a deliberate
+   mark rather than a rendering gap. */
+.brand-logo-framed .brand-logo-mark {
+  border: 1px solid var(--border);
+  box-sizing: content-box;
+}
