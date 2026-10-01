@@ -44,6 +44,7 @@ signing tokens with a secret that is in the repository. Generate one with
 | Variable | Default | Notes |
 | --- | --- | --- |
 | `DB_URL` | composed from the parts below | Full JDBC URL; overrides `DB_HOST`/`DB_PORT`/`DB_NAME`/`DB_URL_PARAMS` |
+| `DATABASE_URL` | *(unset)* | `postgres://` URL injected by Render/Railway/Heroku; used only when neither `DB_URL` nor `DB_HOST` is set |
 | `DB_HOST` | `localhost` | |
 | `DB_PORT` | `5432` | |
 | `DB_NAME` | `logicraft` | |
@@ -156,6 +157,15 @@ non-zero if the map did not load, so it works as a post-deploy smoke check.
 - **Set the database variables**, or a single `DB_URL` if the provider hands you
   one. Add `DB_URL_PARAMS=?sslmode=require` for a managed database that requires
   TLS.
+
+  On Render, create a PostgreSQL instance and link it to the web service. Render
+  then injects `DATABASE_URL`, which the app reads automatically — no host or
+  password needs copying. Set `DB_USER`/`DB_PASSWORD` only if you want to
+  override the credentials in that URL. If you instead copy the connection
+  details by hand, use the **Internal Database URL** (the external one is for
+  connections from outside Render), and set `DB_HOST`, `DB_PORT`, `DB_NAME`,
+  `DB_USER`, `DB_PASSWORD` individually. A bare `DB_URL` must use the
+  `jdbc:postgresql://` scheme.
 - If the dashboard and API are served from the same origin behind a reverse
   proxy, leave `VITE_API_BASE=/api/v1` and no CORS entry is needed for it.
 - The Google Maps key is a browser key. Restrict it to the production origins
