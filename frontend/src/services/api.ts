@@ -12,9 +12,12 @@
  * normalisers at the bottom of this file.
  */
 
+import { apiBase } from "../config";
 import type { ApiErrorCode, QueryParams, RequestOptions, Rows } from "../types";
 
-const API_BASE: string = import.meta.env.VITE_API_BASE ?? "/api/v1";
+// Resolved once at module load. index.html runs config.js before the app
+// bundle, so a runtime override is already in place by the time this runs.
+const API_BASE: string = apiBase();
 
 export class ApiError extends Error {
   code: ApiErrorCode;

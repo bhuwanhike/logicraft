@@ -3,7 +3,7 @@ import { AlertTriangle, Layers } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { MapCanvas } from './MapCanvas';
 import type { MapMarker } from './MapCanvas';
-import { loadGoogleMaps, mapsAuthFailure, mapsMapId } from '../../services/googleMaps';
+import { loadGoogleMaps, mapsAuthFailure, mapsMapId, hasMapsKey } from '../../services/googleMaps';
 import type { MapsLoadFailure } from '../../services/googleMaps';
 import { buildMarkerIcon, markerKey, popupHtml } from './mapMarkers';
 import type {
@@ -337,7 +337,7 @@ function GoogleMapControls({ map, onRecentre }: { map: GoogleMap | null; onRecen
 }
 
 function hasConfiguredKey(): boolean {
-  return (import.meta.env.VITE_GOOGLE_MAPS_API_KEY ?? '').trim().length > 0;
+  return hasMapsKey();
 }
 
 /**

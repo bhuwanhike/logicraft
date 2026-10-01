@@ -1,6 +1,7 @@
 package com.logicraft.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import static org.springframework.http.HttpMethod.DELETE;
 import static org.springframework.http.HttpMethod.GET;
@@ -41,7 +42,7 @@ class SecurityConfigTest {
 
     @BeforeEach
     void setUp() {
-        config = new SecurityConfig();
+        config = new SecurityConfig(List.of("http://localhost:5173", "http://localhost:3000"));
         source = config.corsConfigurationSource();
     }
 
@@ -157,6 +158,38 @@ class SecurityConfigTest {
                     "/audit-logs", "/auth/login", "/anything-else")) {
                 assertThat(policyFor(path)).isNotNull();
             }
+        }
+    }
+
+    // ── configuration ────────────────────────────────────────────────
+
+    @Nested
+    @DisplayName("configuration-driven origins")
+    class Configuration {
+
+        @Test
+        void usesTheOriginsItWasGiven() {
+            // The deployment's origin list is the input, not something the class
+            // knows. A new environment therefore does not require a code change.
+            SecurityConfig production =
+                    new SecurityConfig(List.of("https://app.logicraft.example"));
+            CorsConfiguration policy = production.corsConfigurationSource()
+                    .getCorsConfiguration(new MockHttpServletRequest("GET", "/vehicles"));
+
+            assertThat(policy.checkOrigin("https://app.logicraft.example"))
+                    .isEqualTo("https://app.logicraft.example");
+            assertThat(policy.checkOrigin("http://localhost:5173")).isNull();
+        }
+
+        @Test
+        void refusesAWildcardOrigin() {
+            // allowCredentials(true) plus "*" lets any site make authenticated
+            // requests as the user, so the class refuses to start with it rather
+            // than silently accepting the risk.
+            SecurityConfig insecure = new SecurityConfig(List.of("*"));
+            assertThatThrownBy(insecure::corsConfigurationSource)
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("CORS_ALLOWED_ORIGINS");
         }
     }
 

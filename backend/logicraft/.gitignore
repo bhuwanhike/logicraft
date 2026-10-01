@@ -1,6 +1,11 @@
 target/
 .mvn/wrapper/maven-wrapper.jar
 
+# Real secrets. .env.example is committed; .env never is.
+.env
+.env.local
+.env.*.local
+
 # IDE
 .idea/
 *.iml

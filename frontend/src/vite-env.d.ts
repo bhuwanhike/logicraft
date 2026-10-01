@@ -12,6 +12,15 @@ interface ImportMetaEnv {
   /** Base path for the LogiCraft API, e.g. `/api/v1`. */
   readonly VITE_API_BASE?: string;
   /**
+   * Dev-server port. Read by vite.config.ts in Node, never reaches the bundle.
+   */
+  readonly VITE_DEV_PORT?: string;
+  /**
+   * Where the dev server proxies VITE_API_BASE in development, e.g.
+   * `http://localhost:8080`. Dev only; production calls the API directly.
+   */
+  readonly VITE_DEV_API_TARGET?: string;
+  /**
    * Google Maps JavaScript API browser key. Absent in local development and in
    * CI until it is supplied; the map degrades to its coordinate-less empty
    * state rather than rendering a grey tile void.

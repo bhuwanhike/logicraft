@@ -27,10 +27,55 @@ npm install
 npm run dev                  # http://localhost:5173
 ```
 
-The dashboard reads `VITE_API_BASE_URL` and `VITE_GOOGLE_MAPS_API_KEY` from
-`frontend/.env`. Copy `.env.example` to start from the defaults. The Maps key is
-a browser key and is expected to be public, but it should be restricted to the
-origins that actually serve the app — see "Deployment notes".
+Both halves read their settings from the environment, so nothing about a
+deployment is hardcoded. The backend reads a local `.env` (copy
+`backend/logicraft/.env.example`) and the dashboard reads `frontend/.env` (copy
+`frontend/.env.example`). Real environment variables take precedence over both,
+so the same build runs anywhere — full reference under "Environment variables".
+
+`JWT_SECRET` has no default: the API refuses to start without it, rather than
+signing tokens with a secret that is in the repository. Generate one with
+`openssl rand -hex 32`.
+
+## Environment variables
+
+### Backend (`backend/logicraft/.env`)
+
+| Variable | Default | Notes |
+| --- | --- | --- |
+| `DB_URL` | composed from the parts below | Full JDBC URL; overrides `DB_HOST`/`DB_PORT`/`DB_NAME`/`DB_URL_PARAMS` |
+| `DB_HOST` | `localhost` | |
+| `DB_PORT` | `5432` | |
+| `DB_NAME` | `logicraft` | |
+| `DB_USER` | `postgres` | |
+| `DB_PASSWORD` | *(required)* | No default; the app fails to start without it |
+| `DB_URL_PARAMS` | *(empty)* | Appended to the URL, e.g. `?sslmode=require` |
+| `DB_POOL_MAX_SIZE` | `10` | Hikari pool size; keep at or below the database's limit |
+| `DB_POOL_MIN_IDLE` | `2` | |
+| `JWT_SECRET` | *(required)* | No default; at least 32 bytes |
+| `JWT_EXPIRATION_MS` | `86400000` | 24 hours |
+| `PORT` | `8080` | |
+| `API_CONTEXT_PATH` | `/api/v1` | Must match the frontend's `VITE_API_BASE` |
+| `CORS_ALLOWED_ORIGINS` | `http://localhost:5173,http://localhost:3000` | Comma-separated; never `*` |
+| `JPA_SHOW_SQL` | `false` | Logs every statement with bound values |
+| `LOG_LEVEL_ROOT` | `INFO` | |
+| `LOG_LEVEL_APP` | `INFO` | |
+| `FLYWAY_ENABLED` | `true` | |
+
+### Frontend (`frontend/.env`)
+
+| Variable | Default | Notes |
+| --- | --- | --- |
+| `VITE_API_BASE` | `/api/v1` | Path or absolute URL the client prefixes to every request |
+| `VITE_GOOGLE_MAPS_API_KEY` | *(empty)* | Browser key; restrict by HTTP referrer |
+| `VITE_GOOGLE_MAPS_MAP_ID` | *(empty)* | Only for styled / `AdvancedMarkerElement` markers |
+| `VITE_DEV_PORT` | `5173` | Dev server only |
+| `VITE_DEV_API_TARGET` | `http://localhost:8080` | Dev proxy target |
+
+`VITE_*` values are compiled into the bundle, so changing one needs a rebuild.
+To repoint an existing build without rebuilding, edit the deployed
+`dist/config.js` instead: it runs before the app bundle and its values win. See
+`frontend/public/config.js`. It is public — never put a secret there.
 
 ## Tests
 
@@ -60,6 +105,7 @@ and the API client:
 | Map markers | `src/components/common/__tests__/mapMarkers.test.ts` | WGS84 positioning, popup escaping |
 | API client | `src/services/__tests__/api.test.ts` | URL building, error shapes, array serialisation |
 | Auth | `src/components/auth/__tests__/auth.constants.test.ts` | validation rules |
+| Config | `src/__tests__/config.test.ts` | runtime-override precedence, build-time fallback, blank handling |
 | Hooks | `src/hooks/__tests__/useUi.test.tsx` | sorting, debounce, disclosure, outside-click |
 
 `src/test/fixtures/apiPayloads.ts` holds responses captured from a running
@@ -80,7 +126,7 @@ them, which means the suite runs without PostgreSQL.
 | `ShipmentControllerTest` | driver/vehicle fallback labels, timestamp normalisation, the single-query milestone load, filters shared with the count endpoint |
 | `MetricsControllerTest` | summary shape, delta windows, range parsing, every series key |
 | `JwtTokenProviderTest` | expiry, tampered payloads, foreign keys, unsigned `alg: none` tokens, weak secrets |
-| `SecurityConfigTest` | CORS origins and methods, password hashing |
+| `SecurityConfigTest` | CORS origins and methods, `CORS_ALLOWED_ORIGINS` wiring, wildcard rejection, password hashing |
 
 The alias test is the one worth knowing about. A projection that reverts to
 Postgres column labels (`odometer_km` rather than `odometerKm`) throws nothing
@@ -102,17 +148,19 @@ non-zero if the map did not load, so it works as a post-deploy smoke check.
 
 ## Deployment notes
 
+- **Set `JWT_SECRET`.** It has no default and the app will not start without it.
+  Generate one with `openssl rand -hex 32` and keep it out of the repository.
+- **Set `CORS_ALLOWED_ORIGINS`** to the origin(s) that actually serve the
+  dashboard. It never includes `*`: credentials are allowed, and a wildcard
+  would let any site make authenticated calls as the user.
+- **Set the database variables**, or a single `DB_URL` if the provider hands you
+  one. Add `DB_URL_PARAMS=?sslmode=require` for a managed database that requires
+  TLS.
+- If the dashboard and API are served from the same origin behind a reverse
+  proxy, leave `VITE_API_BASE=/api/v1` and no CORS entry is needed for it.
 - The Google Maps key is a browser key. Restrict it to the production origins
   that serve the dashboard, and to the Maps JavaScript API.
-- `SecurityConfig` allows CORS from `http://localhost:5173` and
-  `http://localhost:3000` only. Add the production origin there when deploying;
-  nothing else will reach the API from a browser.
-- `JwtTokenProvider` falls back to a hardcoded `jwt.secret` when the property is
-  unset, and `application.yml` does not set it. Set `jwt.secret` to a random
-  value of at least 32 bytes for any deployment — the default is in the source
-  and anyone with the repository can mint tokens signed with it. The startup
-  check is the key-length rejection in `Keys.hmacShaKeyFor`, which only catches
-  a secret that is too *short*, not one that is public.
-- `frontend/.env` is Git-ignored. Do not commit a real key.
+- `frontend/.env` and `backend/logicraft/.env` are Git-ignored. Do not commit a
+  real key or secret.
 - `/reports/**` is permitted in the security config but has no controller
   behind it yet, so those paths return 404.

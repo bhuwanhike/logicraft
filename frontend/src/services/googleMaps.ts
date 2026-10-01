@@ -11,6 +11,8 @@
  * unchanged while still typing the surface this app actually touches.
  */
 
+import { googleMapsApiKey, googleMapsMapId } from '../config';
+
 const SRC = 'https://maps.googleapis.com/maps/api/js';
 
 /**
@@ -121,12 +123,12 @@ if (typeof window !== 'undefined') {
 
 /** The configured key, or '' when unset. */
 export function mapsApiKey(): string {
-  return (import.meta.env.VITE_GOOGLE_MAPS_API_KEY ?? '').trim();
+  return googleMapsApiKey();
 }
 
 /** Optional cloud map ID; '' when unset. */
 export function mapsMapId(): string {
-  return (import.meta.env.VITE_GOOGLE_MAPS_MAP_ID ?? '').trim();
+  return googleMapsMapId();
 }
 
 /** True when a key is present, i.e. a real map can be attempted. */
