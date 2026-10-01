@@ -9,7 +9,11 @@
  * a key by HTTP referrer, which the same page documents.
  */
 interface ImportMetaEnv {
-  /** Base path for the LogiCraft API, e.g. `/api/v1`. */
+  /**
+   * Base path or URL for the LogiCraft API, e.g. `/api/v1`. Read by `vite dev`
+   * from `.env` and by `vite build` from `.env.production` (or the deploy
+   * environment), so the same source covers local and deployed use.
+   */
   readonly VITE_API_BASE?: string;
   /**
    * Dev-server port. Read by vite.config.ts in Node, never reaches the bundle.

@@ -13,6 +13,7 @@
  */
 
 import { apiBase } from "../config";
+import { getToken } from "./auth";
 import type { ApiErrorCode, QueryParams, RequestOptions, Rows } from "../types";
 
 // Resolved once at module load. index.html runs config.js before the app
@@ -49,11 +50,13 @@ async function request(
 ): Promise<unknown> {
   let response: Response;
   try {
+    const token = getToken();
     response = await fetch(`${API_BASE}${path}`, {
       signal,
       method,
       headers: {
         Accept: "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(body ? { "Content-Type": "application/json" } : {}),
       },
       ...(body ? { body: JSON.stringify(body) } : {}),
@@ -152,7 +155,10 @@ export const api = {
   export: {
     /** Resolves to a Blob. Kept separate because it is not JSON. */
     report: async (key: string, params: QueryParams = {}): Promise<Blob> => {
-      const res = await fetch(`${API_BASE}/reports/${key}${query(params)}`);
+      const token = getToken();
+      const res = await fetch(`${API_BASE}/reports/${key}${query(params)}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
       const type = res.headers.get("content-type") ?? "";
       if (!type.includes("json")) {
         throw new ApiError("Exports need a connected reporting service.", {

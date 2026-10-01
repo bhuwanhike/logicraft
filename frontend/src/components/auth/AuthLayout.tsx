@@ -50,7 +50,7 @@ export function AuthLayout({ title, subtitle, children, footer }: AuthLayoutProp
 
           <p className="auth-brand-foot">
             <ShieldCheck size={14} aria-hidden="true" />
-            Development build — accounts are stored in this browser only.
+            Passwords are hashed with bcrypt; sessions use a signed bearer token.
           </p>
         </div>
       </aside>

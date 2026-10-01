@@ -397,6 +397,16 @@
 
 .auth-demo button:hover { border-color: #bfd3f3; color: #326fdc; }
 
+/* Wraps onto its own line under the row above; the panel is flex-wrap. */
+.auth-demo-note {
+  width: 100%;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.auth-demo-note a { color: #326fdf; font-weight: 600; }
+
 .auth-switch {
   margin-top: 20px;
   padding-top: 18px;

@@ -56,8 +56,8 @@ signing tokens with a secret that is in the repository. Generate one with
 | `JWT_SECRET` | *(required)* | No default; at least 32 bytes |
 | `JWT_EXPIRATION_MS` | `86400000` | 24 hours |
 | `PORT` | `8080` | |
-| `API_CONTEXT_PATH` | `/api/v1` | Must match the frontend's `VITE_API_BASE` |
-| `CORS_ALLOWED_ORIGINS` | `http://localhost:5173,http://localhost:3000` | Comma-separated; never `*` |
+| `API_CONTEXT_PATH` | `/api/v1` | Must match the path in the frontend's `VITE_API_BASE` |
+| `CORS_ALLOWED_ORIGINS` | `http://localhost:5173,http://localhost:3000` | Comma-separated; never `*`. Matched exactly, so scheme, host and port all count |
 | `JPA_SHOW_SQL` | `false` | Logs every statement with bound values |
 | `LOG_LEVEL_ROOT` | `INFO` | |
 | `LOG_LEVEL_APP` | `INFO` | |
@@ -72,6 +72,29 @@ signing tokens with a secret that is in the repository. Generate one with
 | `VITE_GOOGLE_MAPS_MAP_ID` | *(empty)* | Only for styled / `AdvancedMarkerElement` markers |
 | `VITE_DEV_PORT` | `5173` | Dev server only |
 | `VITE_DEV_API_TARGET` | `http://localhost:8080` | Dev proxy target |
+
+The API base follows Vite's per-mode env files, so local and deployed use the
+same variable name with different values:
+
+- `frontend/.env` (Git-ignored) holds the local value, `/api/v1`, which the dev
+  server proxies to `VITE_DEV_API_TARGET`. It is created from `.env.example`.
+- `frontend/.env.production` is **committed** and holds the deployed API URL.
+  `vite build` loads it automatically, so the deploy needs no extra
+  configuration. A real environment variable set on the build host (for example
+  a Render static site's Environment settings) overrides it for one deployment.
+
+`frontend/.env.production` is loaded only for `vite build`; `vite dev` and
+Vitest use `.env` (or its fallback), so a local checkout never calls production.
+This is the trap to know about when working locally: a bundle from
+`npm run build` — or a browser tab left open on `npm run preview` — talks to the
+deployed API, not to your machine, so the local auth endpoints look missing.
+
+The dev proxy drops the `Origin` header on the way to the backend. A browser
+sends its own origin, `changeOrigin` only rewrites `Host`, and the API's CORS
+filter answers an unlisted origin with a bare `403` and no body. That would
+otherwise make login fail as soon as the dev server is not on the exact
+host:port in `CORS_ALLOWED_ORIGINS` — a second instance on `:5174`, or the LAN
+address Vite prints on startup.
 
 `VITE_*` values are compiled into the bundle, so changing one needs a rebuild.
 To repoint an existing build without rebuilding, edit the deployed
@@ -105,7 +128,11 @@ and the API client:
 | Maps loader | `src/services/__tests__/googleMaps.test.ts` | singleton behaviour under concurrent callers, key classification, `importLibrary` |
 | Map markers | `src/components/common/__tests__/mapMarkers.test.ts` | WGS84 positioning, popup escaping |
 | API client | `src/services/__tests__/api.test.ts` | URL building, error shapes, array serialisation |
+| Auth client | `src/services/__tests__/auth.test.ts` | signup/login requests, session storage, `AuthError` codes, token-less legacy sessions |
 | Auth | `src/components/auth/__tests__/auth.constants.test.ts` | validation rules |
+| Signup page | `src/components/auth/__tests__/SignupForm.test.tsx` | the demo panel shows the seeded account but prefills nothing that must fail |
+| Route guards | `src/__tests__/routeGuards.test.tsx` | `RequireAuth` gates the workspace, `AuthRoute` keeps a signed-in user off the forms |
+| Dev proxy | `src/__tests__/devProxy.test.ts` | the proxy drops `Origin`, so local dev does not depend on the CORS allow list |
 | Config | `src/__tests__/config.test.ts` | runtime-override precedence, build-time fallback, blank handling |
 | Hooks | `src/hooks/__tests__/useUi.test.tsx` | sorting, debounce, disclosure, outside-click |
 
@@ -126,6 +153,7 @@ them, which means the suite runs without PostgreSQL.
 | `GenericControllerTest` | column aliases matching the keys the UI reads, workspace scoping, every filter, pagination bounds, `PgArray`/`PGobject` unwrapping |
 | `ShipmentControllerTest` | driver/vehicle fallback labels, timestamp normalisation, the single-query milestone load, filters shared with the count endpoint |
 | `MetricsControllerTest` | summary shape, delta windows, range parsing, every series key |
+| `AuthControllerTest` | signup uniqueness, bcrypt storage, role mapping, and the shared failure for every bad login |
 | `JwtTokenProviderTest` | expiry, tampered payloads, foreign keys, unsigned `alg: none` tokens, weak secrets |
 | `SecurityConfigTest` | CORS origins and methods, `CORS_ALLOWED_ORIGINS` wiring, wildcard rejection, password hashing |
 
@@ -134,6 +162,23 @@ Postgres column labels (`odometer_km` rather than `odometerKm`) throws nothing
 anywhere — the field just renders an em-dash and the page looks half-populated.
 It asserts every alias in every projection is lowerCamelCase, and that any alias
 with a capital in it is quoted so Postgres does not fold it to lower case.
+
+## Authentication
+
+`POST /api/v1/auth/signup` and `POST /api/v1/auth/login` live in
+`com.logicraft.auth`. Signup hashes the password with bcrypt, derives a unique
+username from the email, assigns the role the signup form selected, and returns
+a signed JWT. Login matches the email (or username) case-insensitively and
+refuses a wrong password, an unknown account and a deactivated account with the
+same response, so the endpoint cannot be used to discover which emails have
+accounts.
+
+Both endpoints answer a failure with `{ "error": ..., "code": ... }`; the client
+maps `duplicate-email` (409) and `invalid-credentials` (401) onto the form's
+error states. The session the client keeps is `{ id, name, email, company, role,
+token, startedAt }`, and the token is sent as a bearer token on workspace
+requests. The login page's demo credentials (`demo@logicraft.io` /
+`LogiCraft2026`) are seeded with a real bcrypt hash by `V10`.
 
 ## Verification scripts
 
@@ -166,6 +211,10 @@ non-zero if the map did not load, so it works as a post-deploy smoke check.
   connections from outside Render), and set `DB_HOST`, `DB_PORT`, `DB_NAME`,
   `DB_USER`, `DB_PASSWORD` individually. A bare `DB_URL` must use the
   `jdbc:postgresql://` scheme.
+- **Set `VITE_API_BASE`** for the deployed frontend. The committed
+  `frontend/.env.production` carries it, so the build works from the repository;
+  override it in the static site's Environment settings to point one deployment
+  elsewhere. It must include the `/api/v1` context path.
 - If the dashboard and API are served from the same origin behind a reverse
   proxy, leave `VITE_API_BASE=/api/v1` and no CORS entry is needed for it.
 - The Google Maps key is a browser key. Restrict it to the production origins
