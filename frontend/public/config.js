@@ -19,7 +19,7 @@ window.__LOGICRAFT_CONFIG__ = {
   // CORS). Set an absolute URL to call the API on another origin, and add that
   // dashboard origin to CORS_ALLOWED_ORIGINS on the backend.
   //   apiBase: "https://api.logicraft.example/api/v1",
-  apiBase: "/api/v1",
+  apiBase: "https://logicraft-backend-a8v1.onrender.com/api/v1",
 
   // Google Maps JavaScript API browser key. Restrict it by HTTP referrer in the
   // Cloud console; a key in a shipped bundle is public by definition.
