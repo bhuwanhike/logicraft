@@ -210,31 +210,37 @@ export function AccountMenu() {
 }
 
 function NotificationPreview() {
-  const { counts, notify } = useWorkspace();
+  const { counts, markAllNotificationsRead } = useWorkspace();
+  const unread = counts.notificationsUnread;
+
+  // One definition rendered by both branches, so the button cannot drift between
+  // the empty and populated states.
+  const markAll = (
+    <button
+      type="button"
+      className="link"
+      disabled={unread === 0}
+      onClick={() => void markAllNotificationsRead()}
+    >
+      <CheckCheck size={13} /> Mark all as read
+    </button>
+  );
 
   if (counts.notifications === 0) {
     return (
       <div className="popover-empty">
         <Bell size={18} aria-hidden="true" />
         <b>Nothing to review</b>
-        <span>Alerts appear here the moment an event stream is connected.</span>
-        <button
-          type="button"
-          className="link"
-          onClick={() => notify('Mark-all-read needs a connected event stream.', 'info')}
-        >
-          <CheckCheck size={13} /> Mark all as read
-        </button>
+        <span>Alerts appear here as they are raised.</span>
+        {markAll}
       </div>
     );
   }
 
   return (
     <div className="popover-empty">
-      <b>{counts.notificationsUnread} unread of {counts.notifications}</b>
-      <button type="button" className="link" onClick={() => notify('Mark-all-read needs a connected event stream.', 'info')}>
-        <CheckCheck size={13} /> Mark all as read
-      </button>
+      <b>{unread} unread of {counts.notifications}</b>
+      {markAll}
     </div>
   );
 }

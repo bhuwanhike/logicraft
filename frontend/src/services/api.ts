@@ -139,7 +139,26 @@ export const api = {
   inventory: collection("inventory"),
   zones: collection("zones"),
   trips: collection("trips"),
-  notifications: collection("notifications"),
+  notifications: {
+    ...collection("notifications"),
+    /**
+     * Marks one notification read (`true`) or unread (`false`).
+     *
+     * Writes are here rather than only in the components because `request()` is
+     * module-private: it is the one place that attaches the bearer token and
+     * turns a non-JSON response into a typed ApiError, and a caller that opened
+     * its own fetch would lose both.
+     */
+    markRead: (id: string | number, read: boolean, options?: RequestOptions) =>
+      request(`/notifications/${id}/read`, {
+        ...options,
+        method: "POST",
+        body: { read },
+      }),
+    /** Marks every unread notification in the workspace as read. */
+    markAllRead: (options?: RequestOptions) =>
+      request("/notifications/mark-all-read", { ...options, method: "POST" }),
+  },
   auditLogs: collection("audit-logs"),
   users: collection("users"),
   metrics: {

@@ -341,6 +341,17 @@
   text-decoration: underline;
 }
 
+/* A disabled .link still has pointer cursor and an accent colour from the base
+   rule, so without this it reads as clickable while doing nothing. */
+.link:disabled {
+  color: var(--ws-muted);
+  cursor: default;
+}
+
+.link:disabled:hover {
+  text-decoration: none;
+}
+
 /* ------------------------------------------------------------- palette */
 
 .dialog-palette {

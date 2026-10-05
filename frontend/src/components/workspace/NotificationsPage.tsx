@@ -44,7 +44,7 @@ const LEVEL_ICONS: Record<Level, LucideIcon> = { critical: AlertTriangle, warnin
  */
 export function NotificationsPage() {
   const navigate = useNavigate();
-  const { notify } = useWorkspace();
+  const { notify, markAllNotificationsRead, markNotificationRead } = useWorkspace();
 
   const [tab, setTab] = useState<string>('all');
   const [query, setQuery] = useState('');
@@ -81,20 +81,48 @@ export function NotificationsPage() {
     else notify('This notification has no linked record.', 'info');
   };
 
+  /**
+   * The raw id, for use in a request path.
+   *
+   * Deliberately not `text()`: that formats a number with toLocaleString, which
+   * turns id 1234 into "1,234". Harmless as a React key, but it would build the
+   * URL /notifications/1,234/read and 404.
+   */
+  const idOf = (n: Row): string =>
+    typeof n.id === 'number' || typeof n.id === 'string' ? String(n.id) : '';
+
+  /**
+   * Write, then refetch this page's list.
+   *
+   * Awaited deliberately. This page holds its own collection, separate from the
+   * one the header badge counts, so it has to reload its own rows — and a
+   * refetch fired without awaiting the write would race it and render the state
+   * the server has not committed yet.
+   */
+  const markAll = async () => {
+    await markAllNotificationsRead();
+    state.refetch();
+  };
+
+  const toggleRead = async (n: Row) => {
+    await markNotificationRead(idOf(n), n.read === false);
+    state.refetch();
+  };
+
   return (
     <>
       <div className="page-heading">
         <div>
           <div className="eyebrow">Inbox</div>
           <h1>Notifications</h1>
-          <p>Exceptions, assignment updates, and system events in one stream.</p>
+          <p>Exceptions, assignment updates, and system events, newest first.</p>
         </div>
         <div className="heading-actions">
           <button
             type="button"
             className="button"
             disabled={counts.unread === 0}
-            onClick={() => notify('Mark-all-read needs a writable event stream.', 'info')}
+            onClick={() => void markAll()}
           >
             <CheckCheck size={16} /> Mark all as read
           </button>
@@ -157,7 +185,8 @@ export function NotificationsPage() {
                         type="button"
                         className="icon-button"
                         aria-label={n.read === false ? 'Mark as read' : 'Mark as unread'}
-                        onClick={() => notify('Read state needs a writable event stream.', 'info')}
+                        disabled={idOf(n) === ''}
+                        onClick={() => void toggleRead(n)}
                       >
                         <Check size={15} />
                       </button>
