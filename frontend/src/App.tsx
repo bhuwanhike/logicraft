@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { Landing } from './components/landing/Landing';
 import { PricingPage } from './components/pricing/PricingPage';
 import { LoginPage } from './components/auth/LoginForm';
@@ -20,16 +20,11 @@ import { SettingsPage } from './components/workspace/SettingsPage';
 import './components/hero/hero.css';
 import './components/auth/auth.css';
 
-/**
- * Keeps a signed-in user off the login and signup pages. There is no session
- * server behind this yet, so the check is local — but the redirect-on-submit in
- * the forms is the part that actually matters, and that is unconditional.
- */
-function AuthRoute({ children }: { children: ReactNode }) {
+/** Re-reads the local session on storage and focus, so cross-tab auth changes show up. */
+function useSignedIn(): boolean {
   const [signedIn, setSignedIn] = useState(() => hasSession());
 
   useEffect(() => {
-    // A tab that signs in elsewhere should not still be showing the form.
     const sync = () => setSignedIn(hasSession());
     window.addEventListener('storage', sync);
     window.addEventListener('focus', sync);
@@ -39,7 +34,33 @@ function AuthRoute({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  return signedIn;
+}
+
+/**
+ * Keeps a signed-in user off the login and signup pages. `hasSession` only
+ * accepts a session carrying a bearer token, so a legacy token-less entry
+ * cannot bounce the visitor away from the form.
+ */
+export function AuthRoute({ children }: { children: ReactNode }) {
+  const signedIn = useSignedIn();
   if (signedIn) return <Navigate to="/dashboard" replace />;
+  return children;
+}
+
+/**
+ * Gates the workspace behind a session. Without this the dashboard and every
+ * module route rendered for anyone who typed the URL, which is exactly what an
+ * authenticated app must not do. The attempted path is kept in location state
+ * so sign-in can return the user where they were headed.
+ */
+export function RequireAuth({ children }: { children: ReactNode }) {
+  const location = useLocation();
+  const signedIn = useSignedIn();
+
+  if (!signedIn) {
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  }
   return children;
 }
 
@@ -88,9 +109,11 @@ export default function App() {
       <Route
         path="/*"
         element={
-          <WorkspaceProvider>
-            <AppShell />
-          </WorkspaceProvider>
+          <RequireAuth>
+            <WorkspaceProvider>
+              <AppShell />
+            </WorkspaceProvider>
+          </RequireAuth>
         }
       >
         {/* NOTE: no <Route index> here on purpose. An index route inside a

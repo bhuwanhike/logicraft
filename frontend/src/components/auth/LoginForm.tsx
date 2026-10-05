@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AuthLayout, FormAlert, SubmitButton, useAuthForm } from './AuthLayout';
 import { PasswordField } from './PasswordField';
 import { validateLogin } from './auth.constants';
@@ -11,14 +11,19 @@ const INITIAL: LoginValues = { email: '', password: '' };
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const form = useAuthForm(INITIAL);
   const [remember, setRemember] = useState<boolean>(true);
+
+  // Where RequireAuth bounced the user from, so signing in resumes the journey
+  // rather than always dumping them on the dashboard.
+  const from = (location.state as { from?: string } | null)?.from ?? '/dashboard';
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     form.handleSubmit(validateLogin, async (values) => {
       await signIn({ ...values, remember });
-      navigate('/dashboard', { replace: true });
+      navigate(from, { replace: true });
     });
   };
 
@@ -72,7 +77,7 @@ export function LoginPage() {
             <input type="checkbox" checked={remember} onChange={(event) => setRemember(event.target.checked)} />
             <span>Keep me signed in</span>
           </label>
-          <span className="auth-disabled-hint" title="Available once the auth service is connected">
+          <span className="auth-disabled-hint" title="Password reset is not available yet">
             Forgot password?
           </span>
         </div>

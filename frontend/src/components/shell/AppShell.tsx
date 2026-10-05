@@ -6,7 +6,7 @@ import { useWorkspace } from '../../state/WorkspaceContext';
 import { useHotkey } from '../../hooks/useUi';
 import { NAV_GROUPS } from './navConfig';
 import { GlobalSearch } from './GlobalSearch';
-import { CreateMenu, NotificationBell, ThemeToggle } from './HeaderControls';
+import { CreateMenu, AccountMenu, NotificationBell, ThemeToggle } from './HeaderControls';
 
 const SIDEBAR_KEY = 'logicraft.sidebar';
 
@@ -151,6 +151,7 @@ export function AppShell() {
             <NotificationBell />
             <ThemeToggle />
             <CreateMenu />
+            <AccountMenu />
           </div>
         </header>
 

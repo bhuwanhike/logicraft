@@ -29,7 +29,11 @@ export interface RequestOptions {
 export type ApiErrorCode = 'no-source' | 'request-failed' | 'unknown' | (string & {});
 
 /** Error code carried by the auth service on thrown `Error`s. */
-export type AuthErrorCode = 'duplicate-email' | 'invalid-credentials';
+export type AuthErrorCode =
+  | 'duplicate-email'
+  | 'invalid-credentials'
+  | 'request-failed'
+  | 'unavailable';
 
 /** The three states a collection request can be in. */
 export type LoadStatus = 'loading' | 'ready' | 'error';

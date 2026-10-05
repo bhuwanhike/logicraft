@@ -41,6 +41,8 @@ public class RecordingJdbcTemplate extends JdbcTemplate {
     private Map<String, Object> rowMap = Map.of();
     private IntFunction<Map<String, Object>> rowMapAnswers;
     private Object scalar;
+    private IntFunction<Object> scalarAnswers;
+    private int updateCount = 1;
     private RuntimeException failure;
 
     // ── configuration ────────────────────────────────────────────────
@@ -106,6 +108,25 @@ public class RecordingJdbcTemplate extends JdbcTemplate {
         return this;
     }
 
+    /**
+     * Answers successive queryForObject calls from a function of the call index.
+     *
+     * A service that reads a count, then an inserted id, then a lookup id gets a
+     * different answer per statement this way. Without it every call returns the
+     * same scalar and a test cannot tell the pre-flight check from the insert.
+     * The index counts queryForObject calls only.
+     */
+    public RecordingJdbcTemplate answeringScalars(IntFunction<Object> answers) {
+        this.scalarAnswers = answers;
+        return this;
+    }
+
+    /** The count returned by update. */
+    public RecordingJdbcTemplate updating(int count) {
+        this.updateCount = count;
+        return this;
+    }
+
     /** Makes every statement fail, to exercise a controller's error path. */
     public RecordingJdbcTemplate failsWith(RuntimeException failure) {
         this.failure = failure;
@@ -147,6 +168,16 @@ public class RecordingJdbcTemplate extends JdbcTemplate {
         return queries.stream().filter(q -> q.method().equals("queryForMap")).toList();
     }
 
+    /** Only the statements that arrived through queryForObject, in the order sent. */
+    public List<Query> objectQueries() {
+        return queries.stream().filter(q -> q.method().equals("queryForObject")).toList();
+    }
+
+    /** Only the statements that arrived through update, in the order sent. */
+    public List<Query> updateQueries() {
+        return queries.stream().filter(q -> q.method().equals("update")).toList();
+    }
+
     // ── JdbcTemplate overrides ───────────────────────────────────────
 
     @Override
@@ -173,7 +204,7 @@ public class RecordingJdbcTemplate extends JdbcTemplate {
         if (failure != null) {
             throw failure;
         }
-        return requiredType.cast(scalar);
+        return requiredType.cast(scalarForCall());
     }
 
     @Override
@@ -182,6 +213,24 @@ public class RecordingJdbcTemplate extends JdbcTemplate {
         if (failure != null) {
             throw failure;
         }
-        return requiredType.cast(scalar);
+        return requiredType.cast(scalarForCall());
+    }
+
+    @Override
+    public int update(String sql, Object... args) {
+        queries.add(new Query("update", sql, args));
+        if (failure != null) {
+            throw failure;
+        }
+        return updateCount;
+    }
+
+    @Override
+    public int update(String sql) {
+        return update(sql, new Object[0]);
+    }
+
+    private Object scalarForCall() {
+        return scalarAnswers == null ? scalar : scalarAnswers.apply(objectQueries().size() - 1);
     }
 }

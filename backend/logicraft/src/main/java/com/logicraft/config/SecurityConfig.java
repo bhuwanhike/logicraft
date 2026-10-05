@@ -54,6 +54,12 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth ->
                 auth
                     .requestMatchers(
+                        // Spring forwards a 4xx/5xx to /error. The authorization
+                        // filter runs on that ERROR dispatch too, so without this
+                        // every error the controllers do not handle — a validation
+                        // 400, an unknown path — is reported as 403 with an empty
+                        // body instead of its real status.
+                        "/error",
                         "/auth/**",
                         "/shipments/**",
                         "/trips/**",

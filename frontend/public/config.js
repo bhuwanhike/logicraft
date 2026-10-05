@@ -14,12 +14,12 @@
  * set it to an empty string) to fall back to the build-time value.
  */
 window.__LOGICRAFT_CONFIG__ = {
-  // Base path or URL of the API. Leave as the relative path when the dashboard
-  // and API share an origin (the usual reverse-proxy setup, which needs no
-  // CORS). Set an absolute URL to call the API on another origin, and add that
+  // Base path or URL of the API. Leave empty to use VITE_API_BASE baked in at
+  // build time (from .env locally, .env.production for a deployed build). Set
+  // it here only to repoint an already-built bundle at runtime; then add the
   // dashboard origin to CORS_ALLOWED_ORIGINS on the backend.
   //   apiBase: "https://api.logicraft.example/api/v1",
-  apiBase: "https://logicraft-backend-a8v1.onrender.com/api/v1",
+  apiBase: "",
 
   // Google Maps JavaScript API browser key. Restrict it by HTTP referrer in the
   // Cloud console; a key in a shipped bundle is public by definition.

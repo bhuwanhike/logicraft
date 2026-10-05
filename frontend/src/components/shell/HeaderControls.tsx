@@ -1,11 +1,12 @@
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, CheckCheck, Moon, Package, Plus, Sun, Truck, UserCheck, Warehouse } from 'lucide-react';
+import { Bell, CheckCheck, LogOut, Moon, Package, Plus, Sun, Truck, UserCheck, Warehouse } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { CreateAction } from '../../types';
 import { useWorkspace } from '../../state/WorkspaceContext';
 import { useClickOutside } from '../../hooks/useUi';
 import { useTheme } from '../../hooks/useTheme';
+import { getSession, signOut } from '../../services/auth';
 
 const ACTION_ICONS: Record<string, LucideIcon> = {
   shipments: Package,
@@ -142,32 +143,104 @@ export function ThemeToggle() {
   );
 }
 
+/** First letter of the first two words of the display name, e.g. "Alex Moreau" -> "AM". */
+function initialsOf(name: string): string {
+  const letters = name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word.charAt(0).toUpperCase());
+  return letters.length > 0 ? letters.join('') : '?';
+}
+
+/**
+ * Header account menu: who is signed in, and the way out.
+ *
+ * Without this there is no sign-out anywhere in the shell, so once the auth
+ * endpoints are live a signed-in user is stuck — `/login` bounces them straight
+ * back to the workspace and nothing clears the stored session. The session is
+ * read on mount, which is enough here: signing in replaces this whole subtree.
+ */
+export function AccountMenu() {
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useClickOutside(ref, () => setOpen(false), { enabled: open });
+
+  const session = getSession();
+  if (!session) return null;
+
+  const signOutAndLeave = () => {
+    setOpen(false);
+    signOut();
+    navigate('/login', { replace: true });
+  };
+
+  return (
+    <div className="account-menu" ref={ref}>
+      <button
+        type="button"
+        className="icon-button account-trigger"
+        aria-label={`Signed in as ${session.name}. Account menu`}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <span className="account-avatar" aria-hidden="true">
+          {initialsOf(session.name)}
+        </span>
+      </button>
+
+      {open && (
+        <div className="menu-popover account-popover" role="menu">
+          <div className="account-identity">
+            <b>{session.name}</b>
+            <span>{session.email}</span>
+            {session.role && <small>{session.role}</small>}
+          </div>
+          <button type="button" role="menuitem" onClick={signOutAndLeave}>
+            <LogOut size={15} aria-hidden="true" />
+            <span>Sign out</span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function NotificationPreview() {
-  const { counts, notify } = useWorkspace();
+  const { counts, markAllNotificationsRead } = useWorkspace();
+  const unread = counts.notificationsUnread;
+
+  // One definition rendered by both branches, so the button cannot drift between
+  // the empty and populated states.
+  const markAll = (
+    <button
+      type="button"
+      className="link"
+      disabled={unread === 0}
+      onClick={() => void markAllNotificationsRead()}
+    >
+      <CheckCheck size={13} /> Mark all as read
+    </button>
+  );
 
   if (counts.notifications === 0) {
     return (
       <div className="popover-empty">
         <Bell size={18} aria-hidden="true" />
         <b>Nothing to review</b>
-        <span>Alerts appear here the moment an event stream is connected.</span>
-        <button
-          type="button"
-          className="link"
-          onClick={() => notify('Mark-all-read needs a connected event stream.', 'info')}
-        >
-          <CheckCheck size={13} /> Mark all as read
-        </button>
+        <span>Alerts appear here as they are raised.</span>
+        {markAll}
       </div>
     );
   }
 
   return (
     <div className="popover-empty">
-      <b>{counts.notificationsUnread} unread of {counts.notifications}</b>
-      <button type="button" className="link" onClick={() => notify('Mark-all-read needs a connected event stream.', 'info')}>
-        <CheckCheck size={13} /> Mark all as read
-      </button>
+      <b>{unread} unread of {counts.notifications}</b>
+      {markAll}
     </div>
   );
 }

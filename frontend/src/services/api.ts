@@ -13,6 +13,7 @@
  */
 
 import { apiBase } from "../config";
+import { getToken } from "./auth";
 import type { ApiErrorCode, QueryParams, RequestOptions, Rows } from "../types";
 
 // Resolved once at module load. index.html runs config.js before the app
@@ -49,11 +50,13 @@ async function request(
 ): Promise<unknown> {
   let response: Response;
   try {
+    const token = getToken();
     response = await fetch(`${API_BASE}${path}`, {
       signal,
       method,
       headers: {
         Accept: "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(body ? { "Content-Type": "application/json" } : {}),
       },
       ...(body ? { body: JSON.stringify(body) } : {}),
@@ -136,7 +139,26 @@ export const api = {
   inventory: collection("inventory"),
   zones: collection("zones"),
   trips: collection("trips"),
-  notifications: collection("notifications"),
+  notifications: {
+    ...collection("notifications"),
+    /**
+     * Marks one notification read (`true`) or unread (`false`).
+     *
+     * Writes are here rather than only in the components because `request()` is
+     * module-private: it is the one place that attaches the bearer token and
+     * turns a non-JSON response into a typed ApiError, and a caller that opened
+     * its own fetch would lose both.
+     */
+    markRead: (id: string | number, read: boolean, options?: RequestOptions) =>
+      request(`/notifications/${id}/read`, {
+        ...options,
+        method: "POST",
+        body: { read },
+      }),
+    /** Marks every unread notification in the workspace as read. */
+    markAllRead: (options?: RequestOptions) =>
+      request("/notifications/mark-all-read", { ...options, method: "POST" }),
+  },
   auditLogs: collection("audit-logs"),
   users: collection("users"),
   metrics: {
@@ -152,7 +174,10 @@ export const api = {
   export: {
     /** Resolves to a Blob. Kept separate because it is not JSON. */
     report: async (key: string, params: QueryParams = {}): Promise<Blob> => {
-      const res = await fetch(`${API_BASE}/reports/${key}${query(params)}`);
+      const token = getToken();
+      const res = await fetch(`${API_BASE}/reports/${key}${query(params)}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
       const type = res.headers.get("content-type") ?? "";
       if (!type.includes("json")) {
         throw new ApiError("Exports need a connected reporting service.", {

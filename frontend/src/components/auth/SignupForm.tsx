@@ -5,7 +5,7 @@ import { AuthLayout, FormAlert, SubmitButton, useAuthForm } from './AuthLayout';
 import { PasswordField } from './PasswordField';
 import { AUTH_ROLES, passwordChecks, validateSignup } from './auth.constants';
 import type { FieldErrors, SignupValues } from './auth.constants';
-import { signUp } from '../../services/auth';
+import { signUp, DEMO_ACCOUNT } from '../../services/auth';
 
 const INITIAL: SignupValues = { name: '', email: '', company: '', role: '', password: '', confirmPassword: '' };
 
@@ -26,6 +26,20 @@ export function SignupPage() {
   };
 
   const checks = passwordChecks(form.values.password);
+
+  /**
+   * Fills the fields a demo account can legitimately stand in for. The email
+   * and password are left blank on purpose: the demo address is already
+   * registered, so submitting it would only produce a 409, and the demo
+   * password has no symbol in it, so it fails the signup policy below. Both are
+   * shown in the panel instead, for reference.
+   */
+  const fillDemo = () => {
+    form.set('name')('Demo Operator');
+    form.set('company')('LogiCraft');
+    form.set('role')(AUTH_ROLES[0]);
+    setTerms(true);
+  };
 
   // The terms checkbox is deliberately held in its own state rather than in
   // `values`, so the validator's 'terms' key sits outside the form's shape.
@@ -151,6 +165,20 @@ export function SignupPage() {
 
         <SubmitButton busy={form.busy}>Create account</SubmitButton>
       </form>
+
+      <div className="auth-demo">
+        <b>Demo account</b>
+        <span>
+          {DEMO_ACCOUNT.email} / {DEMO_ACCOUNT.password}
+        </span>
+        <button type="button" onClick={fillDemo}>
+          Fill in
+        </button>
+        <small className="auth-demo-note">
+          That address is taken and its password has no symbol, so the form only fills the rest. To use it,
+          <Link to="/login"> sign in instead</Link>.
+        </small>
+      </div>
     </AuthLayout>
   );
 }

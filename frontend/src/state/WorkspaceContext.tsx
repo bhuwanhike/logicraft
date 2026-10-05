@@ -39,6 +39,8 @@ interface WorkspaceValue {
   unregisterModal: (name: string) => void;
   openModal: (name: string) => void;
   counts: WorkspaceCounts;
+  markAllNotificationsRead: () => Promise<void>;
+  markNotificationRead: (id: string | number, read: boolean) => Promise<void>;
   toast: Toast | null;
   notify: (message: string, tone?: ToastTone) => void;
   dismissToast: () => void;
@@ -110,6 +112,44 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     [vehicles.data, shipments.data, notifications.data]
   );
 
+  // Stable, so the mutators below do not change identity on every render.
+  const refetchNotifications = notifications.refetch;
+
+  /**
+   * Marks every notification as read.
+   *
+   * The badge is refetched rather than decremented in place. An optimistic
+   * decrement is a guess: the server decides how many rows the call actually
+   * cleared, and another tab may have read some of them in between. Re-reading
+   * is one request and cannot disagree with the list it summarises.
+   */
+  const markAllNotificationsRead = useCallback(async () => {
+    try {
+      await api.notifications.markAllRead();
+      refetchNotifications();
+      notify('All notifications marked as read.');
+    } catch {
+      notify('Could not mark notifications as read.', 'error');
+    }
+  }, [refetchNotifications, notify]);
+
+  /**
+   * Marks one notification read or unread, from the row toggle on the
+   * notifications page. As above, the caller refetches its own list; this
+   * refetches the copy the badge counts.
+   */
+  const markNotificationRead = useCallback(
+    async (id: string | number, read: boolean) => {
+      try {
+        await api.notifications.markRead(id, read);
+        refetchNotifications();
+      } catch {
+        notify('Could not update that notification.', 'error');
+      }
+    },
+    [refetchNotifications, notify]
+  );
+
   const value = useMemo<WorkspaceValue>(
     () => ({
       entities: ENTITIES,
@@ -119,11 +159,23 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       unregisterModal,
       openModal: (name: string) => modals[name]?.(),
       counts,
+      markAllNotificationsRead,
+      markNotificationRead,
       toast,
       notify,
       dismissToast
     }),
-    [modals, registerModal, unregisterModal, counts, toast, notify, dismissToast]
+    [
+      modals,
+      registerModal,
+      unregisterModal,
+      counts,
+      markAllNotificationsRead,
+      markNotificationRead,
+      toast,
+      notify,
+      dismissToast
+    ]
   );
 
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>;
